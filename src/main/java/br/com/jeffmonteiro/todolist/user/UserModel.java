@@ -1,6 +1,9 @@
 package br.com.jeffmonteiro.todolist.user;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -18,4 +21,7 @@ public class UserModel {
     private String username;
     private String name;
     private String password;
+
+    @CreationTimestamp // Get time of creation my data
+    private LocalDateTime createdAt;
 }
