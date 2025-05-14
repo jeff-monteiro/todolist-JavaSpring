@@ -22,6 +22,7 @@ public class UserController {
 
     @Autowired // Manage all the lifecycle
     private IUserRepository userRepository;
+
     @PostMapping("/")
     public ResponseEntity create(@RequestBody UserModel userModel) {
 
