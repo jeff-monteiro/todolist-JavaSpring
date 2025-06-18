@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Base64;
 
 @Component
 public class FilterTaskAuth extends OncePerRequestFilter {
@@ -16,8 +17,17 @@ public class FilterTaskAuth extends OncePerRequestFilter {
         // Implement your authentication logic here
         String getAuth = request.getHeader("Authorization");
 
-        String getPassword = getAuth.substring("Basic".length()).trim();
-        System.out.println("Authorization Header" + getPassword);
+        String getAuthEncoded = getAuth.substring("Basic".length()).trim();
+
+        byte[] authDecode = Base64.getDecoder().decode(getAuthEncoded);
+        String authString = new String(authDecode);
+        String[] credentials = authString.split(":");
+        String username = credentials[0];
+        String password = credentials[1];
+
+        System.out.println("Authorization Header ");
+        System.out.println(username);
+        System.out.println(password);
 
         // If authentication fails, you can send an error response
         // response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
