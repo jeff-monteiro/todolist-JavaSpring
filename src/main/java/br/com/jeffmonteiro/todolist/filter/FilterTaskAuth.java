@@ -1,8 +1,11 @@
 package br.com.jeffmonteiro.todolist.filter;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
+import br.com.jeffmonteiro.todolist.user.IUserRepository;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -12,27 +15,38 @@ import java.util.Base64;
 @Component
 public class FilterTaskAuth extends OncePerRequestFilter {
 
+    @Autowired
+    private IUserRepository userRepository;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // Implement your authentication logic here
-        String getAuth = request.getHeader("Authorization");
 
-        String getAuthEncoded = getAuth.substring("Basic".length()).trim();
+        var pathServelet = request.getContextPath();
 
-        byte[] authDecode = Base64.getDecoder().decode(getAuthEncoded);
-        String authString = new String(authDecode);
-        String[] credentials = authString.split(":");
-        String username = credentials[0];
-        String password = credentials[1];
+        if(pathServelet.equals("/tasks/")){
+            String getAuth = request.getHeader("Authorization");
 
-        System.out.println("Authorization Header ");
-        System.out.println(username);
-        System.out.println(password);
+            String getAuthEncoded = getAuth.substring("Basic".length()).trim();
 
-        // If authentication fails, you can send an error response
-        // response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+            byte[] authDecode = Base64.getDecoder().decode(getAuthEncoded);
+            String authString = new String(authDecode);
+            String[] credentials = authString.split(":");
+            String username = credentials[0];
+            String password = credentials[1];
 
-        // If authentication succeeds, continue with the filter chain
-        filterChain.doFilter(request, response);
+            var user = this.userRepository.findByUsername(username);
+            if(user == null){
+                response.sendError(401);
+            } else {
+                var passwordVerify = BCrypt.verifyer().verify(password.toCharArray(), user.getPassword());
+                if(passwordVerify.verified){
+                    filterChain.doFilter(request, response);
+                } else {
+                    response.sendError(401, "Unauthorized: Invalid password");
+                }
+            }
+        } else {
+            filterChain.doFilter(request, response);
+        }
     }
 }
