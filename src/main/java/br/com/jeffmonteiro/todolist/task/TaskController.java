@@ -24,14 +24,15 @@ public class TaskController {
 
     @PostMapping("/")
     public ResponseEntity create(@RequestBody TaskModel taskModel, HttpServletRequest request){
-        System.out.println("Chegou no controller");
         var idUser = request.getAttribute("idUser");
         taskModel.setIdUser((UUID) idUser);
-        System.out.println("validou o controller");
 
         var currentDate = LocalDateTime.now();
-        if(currentDate.isAfter(taskModel.getStartAt())){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Start date must be in the future");
+        if(currentDate.isAfter(taskModel.getStartAt()) || currentDate.isAfter(taskModel.getEndAt())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Start date and End date must be in the future");
+        }
+        if(taskModel.getStartAt().isAfter(taskModel.getEndAt())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Start date must be before End date");
         }
 
         var task = this.taskRepository.save(taskModel);
