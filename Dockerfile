@@ -8,6 +8,8 @@ COPY . .
 RUN apt-get install maven -y
 RUN mvn cean install
 
+FROM openjdk:17-jdk-slim
+
 EXPOSE 8080
 
 COPY --from=builder /target/todo-list-0.0.1-SNAPSHOT.jar app.jar
